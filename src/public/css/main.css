@@ -10,3 +10,7 @@ body {
 #chat{
     color: rgb(255, 0, 43);
 }
+
+#contentImportant{
+    display: none;
+}
