@@ -30,14 +30,17 @@
       <div class="card-body">
         <form action="" id="nicknameForm">
           <input type="text" id="nickname" class="form-control" />
-          <button type="submit" class="btn btn-warning btn-block mt-2 mb">
+          <button
+            type="button"
+            class="btn btn-warning btn-block mt-2 mb"
+            onclick="createUser()"
+          >
             Send
           </button>
         </form>
       </div>
       <p id="error"></p>
     </div>
-
 
     <div class="container" id="contentImportant">
       <div class="row">
@@ -48,15 +51,19 @@
             </div>
           </div>
           <div id="chat" class="card-body"></div>
-          <div id="chatFile" class="card-body">
-          </div>
+          <div id="chatFile" class="card-body"></div>
 
           <form id="message-form" class="card-footer">
             <div class="input-group">
               <input type="text" id="message" class="form-control" />
-              <input type="file" id="file" class="form-control">
+              <input type="file" id="file" class="form-control" />
               <div class="input-group-append">
-                <button type="submit" class="btn btn-warning">Send</button>
+                <button type="button" class="btn btn-warning" onclick="send()">
+                  Send
+                </button>
+              </div>
+              <div class="input-group-append">
+                <button type="button" class="btn btn-warning" onclick="sendPrivate()">Private</button>
               </div>
             </div>
           </form>
@@ -74,13 +81,128 @@
         </div>
       </div>
     </div>
-
-    <script
-      src="https://code.jquery.com/jquery-3.6.3.min.js"
-      integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU="
-      crossorigin="anonymous"
-    ></script>
-    <script src="/socket.io/socket.io.js" charset="utf8"></script>
-    <script src="./js/main.js"></script>
   </body>
+
+  <script
+    src="https://code.jquery.com/jquery-3.6.3.min.js"
+    integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU="
+    crossorigin="anonymous"
+  ></script>
+  <script src="/socket.io/socket.io.js" charset="utf8"></script>
+
+  <script>
+    const socket = io();
+
+    const $messageForm = $("#message-form");
+    const $messageBox = $("#message");
+
+    const $chat = $("#chat");
+
+    const $nickForm = $("#nicknameForm");
+    const $nickError = $("#error");
+    const $nickname = $("#nickname");
+
+    const $users = $("#usernames");
+
+    function createUser() {
+      socket.emit("new user", $nickname.val(), (data) => {
+        if (data) {
+          console.log("entro");
+          $("#nicknameDiv").hide();
+          $("#contentImportant").show();
+        } else {
+          console.log("Nombre no validado");
+          let error = `<div class alert alert-danger>
+                                <p>Nombre de usuario no disponible, se encuentra en uso</p>
+                            </div>`;
+          $nickError.html(error);
+        }
+        $nickname.val("");
+      });
+    }
+
+    function send() {
+      console.log("Enviando Datos");
+      socket.emit("send message", $messageBox.val());
+      $messageBox.val("");
+      var archivo = $("#file")[0].files[0];
+      var archivoN = $("#file")[0].files[0].name;
+      console.log(archivoN);
+      console.log(archivo);
+      var reader = new FileReader();
+      reader.readAsDataURL(archivo);
+      reader.onloadend = function () {
+        var base64 = reader.result;
+        console.log("---");
+        console.log(base64);
+        socket.emit("send file", base64);
+      };
+    }
+
+    function sendPrivate(){
+      console.log("Enviando Datos Desde Forma Privada");
+      socket.emit("send message private", $messageBox.val());
+      var archivo = $("#file")[0].files[0];
+      var archivoN = $("#file")[0].files[0].name;
+      console.log(archivoN);
+      console.log(archivo);
+      var reader = new FileReader();
+      reader.readAsDataURL(archivo);
+      reader.onloadend = function () {
+        var base64 = reader.result;
+        console.log("---");
+        console.log(base64);
+        socket.emit("send file private", {
+          img: base64,
+          receptor: $messageBox.val()
+        });
+        $messageBox.val("");
+      };
+    }
+
+    socket.on("new message", function (data) {
+      console.log("Nuevo mensaje " + data);
+      $chat.append("<b>" + data.nick + "</b>" + " -> " + data.msg + "<br>");
+    });
+
+    socket.on("new message private", function (data) {
+      console.log("Nuevo mensaje privado" + data);
+      $chat.append("<b>" + data.nick + "</b>" + " -> " + data.msg + "<br>");
+    });
+
+    socket.on("new file", function (file) {
+      const base64Img = file;
+      const imgElement = $("<img>").css({
+        width: "100%",
+        height: "100%",
+      });
+
+      imgElement.attr("src", base64Img);
+      console.log("new file main");
+      console.log(imgElement);
+      $chat.append(imgElement);
+    });
+
+    socket.on("new file private", function (file) {
+      const base64Img = file;
+      const imgElement = $("<img>").css({
+        width: "100%",
+        height: "100%",
+      });
+
+      imgElement.attr("src", base64Img);
+      console.log("new file main");
+      console.log(imgElement);
+      $chat.append(imgElement);
+    });
+
+    socket.on("usernames", (data) => {
+      console.log("entro2");
+      let html = "";
+      for (const element of data) {
+        html = html + `<p>${element}</p>`;
+      }
+      $users.html(html);
+    });
+  </script>
 </html>
