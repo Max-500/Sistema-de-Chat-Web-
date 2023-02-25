@@ -53,7 +53,51 @@ function execute(io) {
     });
 
     socket.on("send file private", function (base64) {
-        
+        let emisor = socketStorage.get(socket.nicknames);
+        console.log(base64)
+        const msg = base64.receptor;
+        const img = base64.img;
+        console.log("Soy msg: " + msg)
+        console.log(msg)
+        const cadena = msg.split(" ")
+        console.log("-----")
+        console.log(cadena)
+        console.log("-----")
+        const receptor = socketStorage.get(msg);
+        console.log("-----")
+        console.log("Soy el receptor" + receptor)
+        console.log("-----")
+        let message;
+        if(cadena.length === 1){
+            message = socket.nicknames + " -> " + " "
+        }else{
+            for(let i = 1; i < cadena.length; i++){
+                message = message + " " + cadena[i]
+            }
+        }
+        console.log("-----")
+        console.log(message)
+        console.log("-----")
+        io.to(emisor).emit("new file private", {msg: message, img: img})
+        io.to(receptor).emit("new file private", {msg: message, img: img})
+    });
+
+    socket.on("send file private - messagge", function (base64) {
+        let emisor = socketStorage.get(socket.nicknames);
+        const msg = base64.receptor;
+        const img = base64.img;
+        const cadena = msg.split(" ")
+        const receptor = socketStorage.get(cadena[0]);
+        let message;
+        if(cadena.length === 1){
+            message = socket.nicknames + " -> " + " "
+        }else{
+            for(let i = 1; i < cadena.length; i++){
+                message = message + " " + cadena[i]
+            }
+        }
+        io.to(emisor).emit("new file private - messagge", img)
+        io.to(receptor).emit("new file private - messagge", img)
     });
 
     socket.on("send file", function (base64) {

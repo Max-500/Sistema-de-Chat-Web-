@@ -63,7 +63,13 @@
                 </button>
               </div>
               <div class="input-group-append">
-                <button type="button" class="btn btn-warning" onclick="sendPrivate()">Private</button>
+                <button
+                  type="button"
+                  class="btn btn-warning"
+                  onclick="sendPrivate()"
+                >
+                  Private
+                </button>
               </div>
             </div>
           </form>
@@ -113,8 +119,8 @@
         } else {
           console.log("Nombre no validado");
           let error = `<div class alert alert-danger>
-                                <p>Nombre de usuario no disponible, se encuentra en uso</p>
-                            </div>`;
+                          <p>Nombre de usuario no disponible, se encuentra en uso</p>
+                        </div>`;
           $nickError.html(error);
         }
         $nickname.val("");
@@ -139,25 +145,41 @@
       };
     }
 
-    function sendPrivate(){
+    function sendPrivate() {
       console.log("Enviando Datos Desde Forma Privada");
-      socket.emit("send message private", $messageBox.val());
       var archivo = $("#file")[0].files[0];
-      var archivoN = $("#file")[0].files[0].name;
-      console.log(archivoN);
-      console.log(archivo);
-      var reader = new FileReader();
-      reader.readAsDataURL(archivo);
-      reader.onloadend = function () {
-        var base64 = reader.result;
-        console.log("---");
-        console.log(base64);
-        socket.emit("send file private", {
-          img: base64,
-          receptor: $messageBox.val()
-        });
-        $messageBox.val("");
-      };
+      let analisis = $messageBox.val().trim();
+      analisis = analisis.split(" ");
+      console.log(analisis.length > 1);
+      if (analisis.length > 1) {
+        alert("Entro con mensaje");
+        socket.emit("send message private", $messageBox.val());
+        var reader = new FileReader();
+        reader.readAsDataURL(archivo);
+        reader.onloadend = function () {
+          var base64 = reader.result;
+          console.log("---");
+          socket.emit("send file private - messagge", {
+            img: base64,
+            receptor: $messageBox.val(),
+          });
+        };
+      } else {
+        console.log("Entro");
+        alert("No has escrito nada de texto");
+        var reader = new FileReader();
+        reader.readAsDataURL(archivo);
+        reader.onloadend = function () {
+          var base64 = reader.result;
+          console.log("---");
+          socket.emit("send file private", {
+            img: base64,
+            receptor: $messageBox.val(),
+          });
+          $messageBox.val("");
+          $("#file").val("");
+        };
+      }
     }
 
     socket.on("new message", function (data) {
@@ -184,6 +206,21 @@
     });
 
     socket.on("new file private", function (file) {
+      const emisor = file.msg;
+      console.log(emisor);
+      const base64Img = file.img;
+      const imgElement = $("<img>").css({
+        width: "100%",
+        height: "100%",
+      });
+
+      imgElement.attr("src", base64Img);
+      console.log("new file main");
+      $chat.append("<b>" + emisor + "</b>");
+      $chat.append(imgElement);
+    });
+
+    socket.on("new file private - messagge", function (file) {
       const base64Img = file;
       const imgElement = $("<img>").css({
         width: "100%",
@@ -192,7 +229,6 @@
 
       imgElement.attr("src", base64Img);
       console.log("new file main");
-      console.log(imgElement);
       $chat.append(imgElement);
     });
 
