@@ -2,6 +2,14 @@
 const http = require("http");
 const express = require("express");
 
+const rateLimit = require("express-rate-limit")
+
+const limiter = rateLimit({
+  windowsMs: 15 * 60 * 1000,
+  max: 4,
+  message: "Alcanzaste el limite"
+})
+
 //Se encarga de unir directorios
 const path = require("path");
 
@@ -9,11 +17,15 @@ const path = require("path");
 const socketio = require("socket.io");
 const app = express();
 
-app.use(express.static(path.join(__dirname, "public")));
-
+//app.use(express.static(path.join(__dirname, "/public")));
+app.use(express.static(path.join(__dirname, "/public/css/main.css")));
+//app.use(limiter)
 const server = http.createServer(app);
 
 const io = socketio(server);
+app.get('/', limiter, (req, res)=>{
+  res.sendFile(__dirname + '/public/index.html')
+})
 
 app.set("port", process.env.PORT || 3000);
 
@@ -88,14 +100,6 @@ function execute(io) {
         const img = base64.img;
         const cadena = msg.split(" ")
         const receptor = socketStorage.get(cadena[0]);
-        let message;
-        if(cadena.length === 1){
-            message = socket.nicknames + " -> " + " "
-        }else{
-            for(let i = 1; i < cadena.length; i++){
-                message = message + " " + cadena[i]
-            }
-        }
         io.to(emisor).emit("new file private - messagge", img)
         io.to(receptor).emit("new file private - messagge", img)
     });
@@ -126,6 +130,7 @@ function execute(io) {
         return;
       }
       nicknames.splice(nicknames.indexOf(data), 1);
+      //socketStorage.remove(socket.nicknames)
       io.sockets.emit("usernames", nicknames);
     });
   });

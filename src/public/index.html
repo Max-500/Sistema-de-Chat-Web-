@@ -18,6 +18,26 @@
     <link rel="stylesheet" href="./css/main.css" />
   </head>
 
+  <style>
+    
+body {
+    background: #000428;
+    /* fallback for old browsers */
+    background: -webkit-linear-gradient(to left, #004e92, #000428);
+    /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to left, #004e92, #000428);
+    /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+}
+
+#chat{
+    color: rgb(255, 0, 43);
+}
+
+#contentImportant{
+    display: none;
+}
+  </style>
+
   <body>
     <nav class="navbar navbar-light bg-warning">
       <span class="navbar-brand mx-auto">Sistema de Chat</span>
@@ -132,9 +152,6 @@
       socket.emit("send message", $messageBox.val());
       $messageBox.val("");
       var archivo = $("#file")[0].files[0];
-      var archivoN = $("#file")[0].files[0].name;
-      console.log(archivoN);
-      console.log(archivo);
       var reader = new FileReader();
       reader.readAsDataURL(archivo);
       reader.onloadend = function () {
@@ -152,7 +169,7 @@
       analisis = analisis.split(" ");
       console.log(analisis.length > 1);
       if (analisis.length > 1) {
-        alert("Entro con mensaje");
+        //alert("Entro con mensaje");
         socket.emit("send message private", $messageBox.val());
         var reader = new FileReader();
         reader.readAsDataURL(archivo);
@@ -166,7 +183,7 @@
         };
       } else {
         console.log("Entro");
-        alert("No has escrito nada de texto");
+        //alert("No has escrito nada de texto");
         var reader = new FileReader();
         reader.readAsDataURL(archivo);
         reader.onloadend = function () {
