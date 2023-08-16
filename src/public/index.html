@@ -169,7 +169,6 @@ body {
       analisis = analisis.split(" ");
       console.log(analisis.length > 1);
       if (analisis.length > 1) {
-        //alert("Entro con mensaje");
         socket.emit("send message private", $messageBox.val());
         var reader = new FileReader();
         reader.readAsDataURL(archivo);
@@ -182,9 +181,7 @@ body {
           });
         };
       } else {
-        console.log("Entro");
-        //alert("No has escrito nada de texto");
-        var reader = new FileReader();
+      const reader = new FileReader();
         reader.readAsDataURL(archivo);
         reader.onloadend = function () {
           var base64 = reader.result;
@@ -250,7 +247,6 @@ body {
     });
 
     socket.on("usernames", (data) => {
-      console.log("entro2");
       let html = "";
       for (const element of data) {
         html = html + `<p>${element}</p>`;
